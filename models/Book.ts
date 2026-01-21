@@ -5,20 +5,32 @@ const BookSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+
   description: {
     type: String,
+    default: "",
   },
+
   price: {
     type: Number,
     required: true,
   },
-  coverImage: {
-    type: String, // dari Cloudinary (opsional)
+
+  category: {
+    type: String,
+    default: "Spiritual",
   },
+
+  coverImage: {
+    type: String,
+    default: "",
+  },
+
   driveLink: {
-    type: String, // Google Drive PDF
+    type: String,
     required: true,
   },
+
   createdAt: {
     type: Date,
     default: Date.now,

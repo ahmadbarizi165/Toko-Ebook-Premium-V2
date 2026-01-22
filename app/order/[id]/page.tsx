@@ -1,47 +1,102 @@
+import Image from "next/image";
 
-// ===================================== // TAHAP D: DOWNLOAD PDF HANYA SETELAH STATUS PAID // ===================================== // Prinsip: // - Link Google Drive TIDAK tampil sebelum PAID // - Setelah admin ubah status order → PAID // - Tombol DOWNLOAD muncul
+async function getBook(id: string) {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/books`,
+    { cache: "no-store" }
+  );
+  const books = await res.json();
+  return books.find((b: any) => b._id === id);
+}
 
-// ===================================== // UPDATE: app/order/[id]/page.tsx // ===================================== import { connectDB } from "@/lib/mongodb"; import Order from "@/models/Order"; import Book from "@/models/Book";
+export default async function OrderPage({ params }: any) {
+  const book = await getBook(params.id);
 
-export default async function OrderPage({ params }: any) { await connectDB();
+  if (!book) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white bg-black">
+        Buku tidak ditemukan
+      </div>
+    );
+  }
 
-const order = await Order.findById(params.id); const book = await Book.findById(order.bookId);
+  return (
+    <main className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black text-white px-6 py-12">
+      <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-12 items-center">
 
-return ( <main style={{ padding: 24 }}> <h1>Status Pesanan</h1>
+        {/* COVER */}
+        <div className="flex justify-center">
+          <div className="relative w-[260px] h-[360px] shadow-2xl">
+            <Image
+              src={book.cover || "/cover-default.jpg"}
+              alt={book.title}
+              fill
+              className="object-contain"
+            />
+          </div>
+        </div>
 
-<p><strong>Ebook:</strong> {order.bookTitle}</p>
-  <p><strong>Harga:</strong> Rp {order.price}</p>
+        {/* FORM */}
+        <div className="bg-zinc-900 p-8 rounded-2xl border border-zinc-800 shadow-xl">
+          <h1 className="text-3xl font-extrabold mb-3">
+            {book.title}
+          </h1>
 
-  <hr />
+          <p className="text-zinc-400 mb-6">
+            {book.description}
+          </p>
 
-  {order.status === "PAID" ? (
-    <div>
-      <h3>✅ Pembayaran Diterima</h3>
-      <p>Silakan download ebook Anda:</p>
-      <a
-        href={book.driveLink}
-        target="_blank"
-        style={{
-          padding: 12,
-          background: "green",
-          color: "white",
-          display: "inline-block"
-        }}
-      >
-        DOWNLOAD PDF
-      </a>
-    </div>
-  ) : (
-    <div>
-      <h3>⏳ Menunggu Pembayaran</h3>
-      <p>Silakan transfer ke:</p>
-      <p>SeaBank (Kode 535)</p>
-      <p>Nama: AHMAD BARIZI</p>
-      <p>No Rekening: 901981495649</p>
-    </div>
-  )}
-</main>
+          <div className="text-2xl font-bold text-emerald-400 mb-8">
+            Rp {book.price.toLocaleString("id-ID")}
+          </div>
 
-); }
+          <form
+            action="/api/order"
+            method="POST"
+            className="space-y-5"
+          >
+            <input type="hidden" name="bookId" value={book._id} />
 
-// ===================================== // CARA ADMIN KONFIRMASI (TANPA KODE) // ===================================== // 1) Buka MongoDB Atlas // 2) Collection: orders // 3) Cari order // 4) Ubah status: "PENDING" → "PAID" // 5) Save // =====================================
+            <div>
+              <label className="block mb-1 text-sm text-zinc-300">
+                Nama Lengkap
+              </label>
+              <input
+                name="name"
+                required
+                placeholder="Masukkan nama Anda"
+                className="w-full p-3 rounded-xl bg-black border border-zinc-700 focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1 text-sm text-zinc-300">
+                Email Aktif
+              </label>
+              <input
+                type="email"
+                name="email"
+                required
+                placeholder="Email untuk menerima akses ebook"
+                className="w-full p-3 rounded-xl bg-black border border-zinc-700 focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-bold py-3 rounded-xl transition"
+            >
+              🔐 LANJUTKAN PEMBELIAN
+            </button>
+          </form>
+
+          <p className="text-xs text-zinc-500 mt-6 text-center">
+            ✔ Akses aman & terlindungi  
+            <br />
+            ✔ Download menggunakan OTP Email
+          </p>
+        </div>
+      </div>
+    </main>
+  );
+}

@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background: #020617; /* dark premium */
+  color: #e5e7eb;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.premium-card {
+  @apply bg-slate-900 rounded-2xl shadow-lg border border-slate-800 
+  hover:shadow-2xl transition-all duration-300;
+}
+
+.premium-button {
+  @apply bg-gradient-to-r from-indigo-500 to-purple-600
+  hover:from-purple-600 hover:to-indigo-500
+  text-white font-semibold px-5 py-3 rounded-xl
+  transition-all duration-300;
+}
+
+.badge-premium {
+  @apply bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full;
+}

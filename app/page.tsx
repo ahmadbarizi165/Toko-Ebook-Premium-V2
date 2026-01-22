@@ -1,78 +1,73 @@
-"use client";
+import Image from "next/image";
+import Link from "next/link";
+import { connectDB } from "@/lib/mongodb";
+import Book from "@/models/Book";
 
-import { useEffect, useState } from "react";
-
-type Book = {
-  _id: string;
-  title: string;
-  description: string;
-  price: number;
-  cover: string;
-  isPremium: boolean;
-};
-
-export default function HomePage() {
-  const [books, setBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/books")
-      .then((res) => res.json())
-      .then((data) => {
-        setBooks(data);
-        setLoading(false);
-      });
-  }, []);
+export default async function Home() {
+  await connectDB();
+  const books = await Book.find();
 
   return (
-    <main style={{ padding: 24, fontFamily: "sans-serif" }}>
-      <h1 style={{ fontSize: 28, marginBottom: 8 }}>
-        📘 Toko Ebook Premium
-      </h1>
-      <p style={{ marginBottom: 24 }}>
-        Koleksi ebook premium pengembangan diri & spiritual.
-      </p>
+    <main className="max-w-7xl mx-auto px-6 py-16">
+      
+      {/* HEADER */}
+      <section className="text-center mb-16">
+        <h1 className="text-4xl md:text-5xl font-extrabold mb-4">
+          TOKO EBOOK PREMIUM
+        </h1>
+        <p className="text-slate-400 max-w-2xl mx-auto">
+          Pengetahuan tingkat tinggi • Proteksi spiritual • Kesadaran diri  
+          <br />Akses privat & aman
+        </p>
+      </section>
 
-      {loading && <p>Memuat katalog...</p>}
+      {/* GRID BUKU */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {books.map((book: any) => (
+          <div key={book._id} className="premium-card overflow-hidden">
+            
+            {/* COVER */}
+            <div className="relative h-64">
+              <Image
+                src={book.cover || "/cover-default.jpg"}
+                alt={book.title}
+                fill
+                className="object-cover"
+              />
+              {book.isPremium && (
+                <div className="absolute top-4 right-4 badge-premium">
+                  PREMIUM
+                </div>
+              )}
+            </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 20,
-        }}
-      >
-        {books.map((book) => (
-          <div
-            key={book._id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: 8,
-              padding: 16,
-            }}
-          >
-            <h3>{book.title}</h3>
-            <p style={{ fontSize: 14 }}>{book.description}</p>
-            <p>
-              <strong>Rp {book.price}</strong>
-            </p>
+            {/* KONTEN */}
+            <div className="p-6 flex flex-col gap-4">
+              <h2 className="text-xl font-bold">{book.title}</h2>
+              <p className="text-slate-400 text-sm line-clamp-3">
+                {book.description}
+              </p>
 
-            {book.isPremium && (
-              <span
-                style={{
-                  fontSize: 12,
-                  color: "white",
-                  background: "goldenrod",
-                  padding: "4px 8px",
-                  borderRadius: 4,
-                }}
-              >
-                PREMIUM
-              </span>
-            )}
+              <div className="flex items-center justify-between mt-4">
+                <span className="text-lg font-bold text-indigo-400">
+                  Rp {book.price.toLocaleString("id-ID")}
+                </span>
+
+                <Link href={`/order/${book._id}`} className="premium-button">
+                  BELI SEKARANG
+                </Link>
+              </div>
+            </div>
+
           </div>
         ))}
-      </div>
+      </section>
+
+      {/* TRUST */}
+      <section className="mt-20 text-center text-slate-400 text-sm">
+        🔒 Akses privat • 📧 Ebook via Email • ♾️ Hak pribadi
+      </section>
+
     </main>
   );
 }

@@ -1,11 +1,24 @@
-import { connectDB } from "@/lib/mongodb"; import Order from "@/models/Order"; import Book from "@/models/Book";
+import { connectDB } from "@/lib/mongodb";
+import Order from "@/models/Order";
+import Book from "@/models/Book";
 
-export async function GET( req: Request, { params }: { params: { token: string } } ) { await connectDB();
+export async function POST(req: Request, { params }: any) {
+  const { otp } = await req.json();
+  await connectDB();
 
-const order = await Order.findOne({ downloadToken: params.token });
+  const order = await Order.findOne({ downloadToken: params.token });
+  if (!order || order.status !== "PAID")
+    return new Response("Forbidden", { status: 403 });
 
-if (!order || order.status !== "PAID") { return new Response("Link tidak valid", { status: 403 }); }
+  if (order.otp !== otp || order.otpExpiredAt < new Date())
+    return new Response("OTP salah", { status: 403 });
 
-const book = await Book.findById(order.bookId);
+  if (order.downloadCount >= 5)
+    return new Response("Limit tercapai", { status: 403 });
 
-return Response.redirect(book.driveLink); }
+  order.downloadCount += 1;
+  await order.save();
+
+  const book = await Book.findById(order.bookId);
+  return Response.json({ link: book.driveLink });
+}

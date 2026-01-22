@@ -1,73 +1,68 @@
-import Image from "next/image";
+"use client";
 
-async function getBooks() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/books`, {
-    cache: "no-store",
-  });
-  return res.json();
-}
+import { useEffect, useState } from "react";
 
-export default async function Home() {
-  const books = await getBooks();
+export default function HomePage() {
+  const [books, setBooks] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetch("/api/books")
+      .then(res => res.json())
+      .then(setBooks);
+  }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black text-white px-6 py-10">
-      {/* HEADER */}
-      <section className="text-center mb-16">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-wide mb-4">
-          📘 TOKO EBOOK PREMIUM
-        </h1>
-        <p className="text-zinc-300 max-w-2xl mx-auto text-lg">
-          Kumpulan Ebook Pilihan dengan Kualitas Tinggi, Ilmu Mendalam,
-          dan Proteksi Eksklusif.
-        </p>
-      </section>
+    <main className="min-h-screen bg-black text-white p-6">
+      <h1 className="text-4xl font-extrabold text-center mb-4">
+        📘 TOKO EBOOK PREMIUM
+      </h1>
 
-      {/* LIST BUKU */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10 max-w-7xl mx-auto">
-        {books.map((book: any) => (
+      <p className="text-center text-zinc-400 mb-10">
+        Ebook Pengembangan Diri & Spiritual • Aman • Eksklusif
+      </p>
+
+      <div className="grid md:grid-cols-3 gap-6">
+        {books.map(book => (
           <div
             key={book._id}
-            className="bg-zinc-900 rounded-2xl shadow-xl hover:scale-105 transition duration-300 border border-zinc-800"
+            className="bg-zinc-900 rounded-2xl p-5 shadow-xl"
           >
-            {/* COVER */}
-            <div className="relative w-full h-[320px] rounded-t-2xl overflow-hidden">
-              <Image
-                src={book.cover || "/cover-default.jpg"}
-                alt={book.title}
-                fill
-                className="object-contain"
-              />
-            </div>
+            <img
+              src={book.cover || "/covers/default.jpg"}
+              className="rounded-xl mb-4"
+            />
 
-            {/* INFO */}
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-2">{book.title}</h2>
-              <p className="text-sm text-zinc-400 mb-4">
-                {book.description}
-              </p>
+            <h2 className="text-xl font-bold">{book.title}</h2>
+            <p className="text-zinc-400 text-sm mb-3">
+              {book.description}
+            </p>
 
-              <div className="flex items-center justify-between">
-                <span className="text-lg font-semibold text-emerald-400">
-                  Rp {book.price.toLocaleString("id-ID")}
-                </span>
+            <p className="text-green-400 font-bold mb-4">
+              Rp {book.price.toLocaleString("id-ID")}
+            </p>
 
-                <a
-                  href={`/order/${book._id}`}
-                  className="bg-emerald-500 hover:bg-emerald-600 text-black px-4 py-2 rounded-xl font-bold transition"
-                >
-                  BELI SEKARANG
-                </a>
-              </div>
-            </div>
+            <button
+              onClick={async () => {
+                const res = await fetch("/api/order", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    bookId: book._id,
+                    name: "Pembeli",
+                    email: prompt("Masukkan email Anda"),
+                  }),
+                });
+
+                const data = await res.json();
+                window.location.href = `/order/${data.orderId}`;
+              }}
+              className="w-full bg-emerald-500 text-black p-3 rounded-xl font-bold"
+            >
+              BELI SEKARANG
+            </button>
           </div>
         ))}
-      </section>
-
-      {/* FOOTER */}
-      <footer className="text-center text-zinc-500 text-sm mt-20">
-        © {new Date().getFullYear()} TOKO EBOOK PREMIUM — All Rights Reserved
-      </footer>
+      </div>
     </main>
   );
 }

@@ -4,18 +4,17 @@ import Book from "@/models/Book";
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const { bookId, buyerName, buyerEmail } = body;
-
   await connectDB();
-  const book = await Book.findById(bookId);
+
+  const book = await Book.findById(body.bookId);
 
   const order = await Order.create({
-    bookId,
+    bookId: book._id,
     bookTitle: book.title,
     price: book.price,
-    buyerName,
-    buyerEmail
+    buyerName: body.name,
+    buyerEmail: body.email,
   });
 
   return Response.json({ orderId: order._id });
-    }
+}

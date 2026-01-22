@@ -1,101 +1,92 @@
-import Image from "next/image";
+"use client";
 
-async function getBook(id: string) {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/books`,
-    { cache: "no-store" }
-  );
-  const books = await res.json();
-  return books.find((b: any) => b._id === id);
-}
+import { useState } from "react";
 
-export default async function OrderPage({ params }: any) {
-  const book = await getBook(params.id);
+export default function OrderPage({ params }: any) {
+  const [otp, setOtp] = useState("");
+  const [token, setToken] = useState("");
+  const [message, setMessage] = useState("");
+  const [downloadLink, setDownloadLink] = useState("");
 
-  if (!book) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-white bg-black">
-        Buku tidak ditemukan
-      </div>
-    );
+  async function requestOtp() {
+    const res = await fetch("/api/download/request-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+
+    if (res.ok) {
+      setMessage("✅ OTP telah dikirim ke email Anda");
+    } else {
+      setMessage("❌ Gagal mengirim OTP");
+    }
+  }
+
+  async function download() {
+    const res = await fetch(`/api/download/${token}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ otp }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      setDownloadLink(data.link);
+      setMessage("✅ Berhasil! Klik link di bawah");
+    } else {
+      setMessage("❌ OTP salah atau expired");
+    }
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black text-white px-6 py-12">
-      <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+    <main className="min-h-screen bg-black text-white flex items-center justify-center p-6">
+      <div className="max-w-md w-full bg-zinc-900 rounded-2xl p-6 space-y-4 shadow-xl">
+        <h1 className="text-2xl font-extrabold text-center">
+          🔐 DOWNLOAD EBOOK
+        </h1>
 
-        {/* COVER */}
-        <div className="flex justify-center">
-          <div className="relative w-[260px] h-[360px] shadow-2xl">
-            <Image
-              src={book.cover || "/cover-default.jpg"}
-              alt={book.title}
-              fill
-              className="object-contain"
-            />
-          </div>
-        </div>
+        <input
+          placeholder="Masukkan TOKEN (dari email)"
+          className="w-full p-3 rounded-xl bg-black border border-zinc-700"
+          value={token}
+          onChange={(e) => setToken(e.target.value)}
+        />
 
-        {/* FORM */}
-        <div className="bg-zinc-900 p-8 rounded-2xl border border-zinc-800 shadow-xl">
-          <h1 className="text-3xl font-extrabold mb-3">
-            {book.title}
-          </h1>
+        <button
+          onClick={requestOtp}
+          className="w-full bg-emerald-500 text-black font-bold p-3 rounded-xl"
+        >
+          MINTA KODE OTP
+        </button>
 
-          <p className="text-zinc-400 mb-6">
-            {book.description}
-          </p>
+        <input
+          placeholder="Masukkan OTP"
+          className="w-full p-3 rounded-xl bg-black border border-zinc-700"
+          value={otp}
+          onChange={(e) => setOtp(e.target.value)}
+        />
 
-          <div className="text-2xl font-bold text-emerald-400 mb-8">
-            Rp {book.price.toLocaleString("id-ID")}
-          </div>
+        <button
+          onClick={download}
+          className="w-full bg-blue-500 text-black font-bold p-3 rounded-xl"
+        >
+          DOWNLOAD SEKARANG
+        </button>
 
-          <form
-            action="/api/order"
-            method="POST"
-            className="space-y-5"
+        {message && (
+          <p className="text-center text-sm text-zinc-300">{message}</p>
+        )}
+
+        {downloadLink && (
+          <a
+            href={downloadLink}
+            target="_blank"
+            className="block text-center bg-green-600 p-3 rounded-xl font-bold"
           >
-            <input type="hidden" name="bookId" value={book._id} />
-
-            <div>
-              <label className="block mb-1 text-sm text-zinc-300">
-                Nama Lengkap
-              </label>
-              <input
-                name="name"
-                required
-                placeholder="Masukkan nama Anda"
-                className="w-full p-3 rounded-xl bg-black border border-zinc-700 focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-
-            <div>
-              <label className="block mb-1 text-sm text-zinc-300">
-                Email Aktif
-              </label>
-              <input
-                type="email"
-                name="email"
-                required
-                placeholder="Email untuk menerima akses ebook"
-                className="w-full p-3 rounded-xl bg-black border border-zinc-700 focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-bold py-3 rounded-xl transition"
-            >
-              🔐 LANJUTKAN PEMBELIAN
-            </button>
-          </form>
-
-          <p className="text-xs text-zinc-500 mt-6 text-center">
-            ✔ Akses aman & terlindungi  
-            <br />
-            ✔ Download menggunakan OTP Email
-          </p>
-        </div>
+            ⬇ DOWNLOAD PDF
+          </a>
+        )}
       </div>
     </main>
   );

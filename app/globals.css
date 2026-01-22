@@ -23,3 +23,15 @@ body {
 .badge-premium {
   @apply bg-yellow-500 text-black text-xs font-bold px-3 py-1 rounded-full;
 }
+body {
+  background-color: #000;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #22c55e;
+  border-radius: 10px;
+}

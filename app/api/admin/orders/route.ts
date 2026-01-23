@@ -1,3 +1,11 @@
+import crypto from "crypto";
+
+const token = crypto.randomBytes(32).toString("hex");
+
+await Order.findByIdAndUpdate(id, {
+  status: "PAID",
+  downloadToken: token,
+});
 import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
 import Book from "@/models/Book";

@@ -118,3 +118,9 @@ export default function OrderPage({ params }: any) {
     </main>
   );
 }
+<a
+  href={`/api/download/${order.downloadToken}`}
+  className="bg-green-600 text-white px-6 py-3 rounded-lg"
+>
+  DOWNLOAD EBOOK
+</a>

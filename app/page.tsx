@@ -1,68 +1,43 @@
-"use client";
+import Link from "next/link";
 
-import { useEffect, useState } from "react";
-
-export default function HomePage() {
-  const [books, setBooks] = useState<any[]>([]);
-
-  useEffect(() => {
-    fetch("/api/books")
-      .then(res => res.json())
-      .then(setBooks);
-  }, []);
-
+export default function Home() {
   return (
-    <main className="min-h-screen bg-black text-white p-6">
-      <h1 className="text-4xl font-extrabold text-center mb-4">
-        📘 TOKO EBOOK PREMIUM
-      </h1>
+    <main style={{ maxWidth: 960, margin: "auto", padding: 24 }}>
+      {/* HERO */}
+      <section style={{ textAlign: "center", marginBottom: 60 }}>
+        <h1 style={{ fontSize: 36, fontWeight: "bold" }}>
+          Toko Ebook Premium
+        </h1>
+        <p style={{ fontSize: 18, marginTop: 12 }}>
+          Karya Pengembangan Diri Spiritual Modern • Eksklusif • Terbukti
+        </p>
+        <p style={{ marginTop: 16, color: "#555" }}>
+          Bukan bacaan biasa. Ini adalah <b>jalan transformasi</b>.
+        </p>
+      </section>
 
-      <p className="text-center text-zinc-400 mb-10">
-        Ebook Pengembangan Diri & Spiritual • Aman • Eksklusif
-      </p>
+      {/* TRUST */}
+      <section style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 20 }}>
+        <div>✔ Akses Instan</div>
+        <div>✔ Pembayaran Otomatis</div>
+        <div>✔ Aman & Privasi Terjaga</div>
+        <div>✔ File Asli & Eksklusif</div>
+      </section>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        {books.map(book => (
-          <div
-            key={book._id}
-            className="bg-zinc-900 rounded-2xl p-5 shadow-xl"
-          >
-            <img
-              src={book.cover || "/covers/default.jpg"}
-              className="rounded-xl mb-4"
-            />
-
-            <h2 className="text-xl font-bold">{book.title}</h2>
-            <p className="text-zinc-400 text-sm mb-3">
-              {book.description}
-            </p>
-
-            <p className="text-green-400 font-bold mb-4">
-              Rp {book.price.toLocaleString("id-ID")}
-            </p>
-
-            <button
-              onClick={async () => {
-                const res = await fetch("/api/order", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    bookId: book._id,
-                    name: "Pembeli",
-                    email: prompt("Masukkan email Anda"),
-                  }),
-                });
-
-                const data = await res.json();
-                window.location.href = `/order/${data.orderId}`;
-              }}
-              className="w-full bg-emerald-500 text-black p-3 rounded-xl font-bold"
-            >
-              BELI SEKARANG
-            </button>
-          </div>
-        ))}
-      </div>
+      {/* CTA */}
+      <section style={{ textAlign: "center", marginTop: 60 }}>
+        <Link href="#katalog">
+          <button style={{
+            padding: "14px 28px",
+            background: "#111",
+            color: "white",
+            fontSize: 16,
+            borderRadius: 6
+          }}>
+            🔓 BUKA KATALOG PREMIUM
+          </button>
+        </Link>
+      </section>
     </main>
   );
 }

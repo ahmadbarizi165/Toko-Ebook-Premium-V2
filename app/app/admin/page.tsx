@@ -1,3 +1,8 @@
+<img
+  src="/logo.png"
+  alt="Admin Ebook Premium"
+  style={{ width: 120, marginBottom: 20 }}
+/>
 import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
 

@@ -1,3 +1,12 @@
+import { sendEmail } from "@/utils/email";
+
+const orderLink = `${process.env.NEXT_PUBLIC_BASE_URL}/order/${id}`;
+
+await sendEmail(
+  order.buyerEmail,
+  "Akses Ebook Premium Anda",
+  orderLink
+); di 
 import crypto from "crypto";
 
 const token = crypto.randomBytes(32).toString("hex");

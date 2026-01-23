@@ -1,4 +1,16 @@
-
+<button
+  onClick={async () => {
+    const res = await fetch("/api/midtrans/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: order._id }),
+    });
+    const data = await res.json();
+    window.snap.pay(data.token);
+  }}
+>
+  BAYAR SEKARANG
+</button>
 <button
   onClick={async () => {
     const res = await fetch("/api/midtrans", {

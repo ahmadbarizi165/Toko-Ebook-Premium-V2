@@ -1,6 +1,39 @@
 import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
 import Book from "@/models/Book";
+import { NextResponse } from "next/server";
+
+export async function GET(
+  req: Request,
+  { params }: { params: { token: string } }
+) {
+  await connectDB();
+
+  const order = await Order.findOne({
+    downloadToken: params.token,
+    status: "PAID",
+  });
+
+  if (!order) {
+    return new Response("Link tidak valid", { status: 403 });
+  }
+
+  // BATASI JUMLAH DOWNLOAD
+  if (order.downloadCount >= 3) {
+    return new Response("Batas download tercapai", { status: 403 });
+  }
+
+  order.downloadCount += 1;
+  await order.save();
+
+  const book = await Book.findById(order.bookId);
+
+  // REDIRECT ke Google Drive
+  return NextResponse.redirect(book.driveLink);
+}
+import { connectDB } from "@/lib/mongodb";
+import Order from "@/models/Order";
+import Book from "@/models/Book";
 
 export async function POST(req: Request, { params }: any) {
   await connectDB();

@@ -1,3 +1,22 @@
+<button
+  onClick={async () => {
+    const res = await fetch("/api/midtrans", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId: order._id }),
+    });
+    const data = await res.json();
+    window.snap.pay(data.token);
+  }}
+  style={{
+    padding: 12,
+    background: "#0ea5e9",
+    color: "white",
+    fontWeight: "bold",
+  }}
+>
+  BAYAR OTOMATIS
+</button>
 <script
   src={
     process.env.MIDTRANS_IS_PRODUCTION === "true"

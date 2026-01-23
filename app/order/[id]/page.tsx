@@ -1,3 +1,4 @@
+
 <button
   onClick={async () => {
     const res = await fetch("/api/midtrans", {
@@ -23,6 +24,7 @@
       ? "https://app.midtrans.com/snap/snap.js"
       : "https://app.sandbox.midtrans.com/snap/snap.js"
   }
+
   data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
 />
 "use client";

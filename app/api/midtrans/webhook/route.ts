@@ -1,58 +1,68 @@
-
+import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
-import crypto from "crypto";
 import { sendEmail } from "@/utils/email";
 
 export async function POST(req: Request) {
   const body = await req.json();
-  await connectDB();
 
-  const orderId = body.order_id;
-  const transactionStatus = body.transaction_status;
-  const fraudStatus = body.fraud_status;
+  // VALIDASI SIGNATURE
+  const serverKey = process.env.MIDTRANS_WEBHOOK_SECRET!;
+  const signatureKey = crypto
+    .createHash("sha512")
+    .update(
+      body.order_id +
+      body.status_code +
+      body.gross_amount +
+      serverKey
+    )
+    .digest("hex");
 
-  const isPaid =
-    transactionStatus === "settlement" ||
-    transactionStatus === "capture";
+  if (signatureKey !== body.signature_key) {
+    return new Response("Invalid signature", { status: 403 });
+  }
 
-  if (isPaid && fraudStatus !== "deny") {
+  // HANYA PROSES JIKA SUKSES
+  if (
+    body.transaction_status === "settlement" ||
+    body.transaction_status === "capture"
+  ) {
+    await connectDB();
+
     const token = crypto.randomBytes(32).toString("hex");
 
-    const order = await Order.findByIdAndUpdate(
-      orderId,
+    const order = await Order.findOneAndUpdate(
+      { midtransOrderId: body.order_id },
       {
         status: "PAID",
         downloadToken: token,
-        tokenExpiredAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
       },
       { new: true }
     );
 
-    // ⬇️ KIRIM EMAIL OTOMATIS
     if (order) {
-      const orderLink = `${process.env.NEXT_PUBLIC_BASE_URL}/order/${order._id}`;
+      const downloadLink = `${process.env.NEXT_PUBLIC_BASE_URL}/order/${order._id}`;
 
       await sendEmail(
         order.buyerEmail,
-        "✅ Pembayaran Berhasil – Akses Ebook Anda",
+        "Akses Ebook Premium Anda",
         `
-        <h2>Pembayaran Berhasil</h2>
-        <p>Halo <b>${order.buyerName}</b>,</p>
-        <p>Pembayaran ebook <b>${order.bookTitle}</b> telah kami terima.</p>
-        <p>Silakan klik link di bawah untuk mengakses ebook Anda:</p>
-        <p>
-          <a href="${orderLink}" style="padding:10px 16px;background:#16a34a;color:white;text-decoration:none;">
-            📥 BUKA HALAMAN DOWNLOAD
-          </a>
-        </p>
-        <p>Terima kasih atas kepercayaan Anda.</p>
-        <hr/>
-        <small>Toko Ebook Premium</small>
+Halo ${order.buyerName},
+
+Pembayaran Anda telah kami TERIMA ✅
+
+Silakan download ebook Anda di link berikut:
+${downloadLink}
+
+Link aman & khusus untuk Anda.
+
+Salam Berkah,
+TOKO EBOOK PREMIUM
         `
       );
     }
   }
 
-  return Response.json({ received: true });
+  return NextResponse.json({ received: true });
 }

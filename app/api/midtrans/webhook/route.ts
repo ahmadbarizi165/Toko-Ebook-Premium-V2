@@ -1,3 +1,35 @@
+import { connectDB } from "@/lib/mongodb";
+import Order from "@/models/Order";
+import crypto from "crypto";
+import { sendEmail } from "@/utils/email";
+
+export async function POST(req: Request) {
+  const body = await req.json();
+  await connectDB();
+
+  if (body.transaction_status === "settlement") {
+    const token = crypto.randomBytes(32).toString("hex");
+
+    const order = await Order.findByIdAndUpdate(
+      body.order_id,
+      {
+        status: "PAID",
+        downloadToken: token,
+      },
+      { new: true }
+    );
+
+    const link = `${process.env.NEXT_PUBLIC_BASE_URL}/order/${order._id}`;
+
+    await sendEmail(
+      order.buyerEmail,
+      "Akses Ebook Premium Anda",
+      link
+    );
+  }
+
+  return Response.json({ received: true });
+      }
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { connectDB } from "@/lib/mongodb";

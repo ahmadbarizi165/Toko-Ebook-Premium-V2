@@ -1,4 +1,6 @@
 downloadToken: String,
+downloadCount: { type: Number, default: 0 },
+downloadToken: String,
 import mongoose from "mongoose";
 
 const OrderSchema = new mongoose.Schema({

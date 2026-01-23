@@ -1,3 +1,6 @@
+MIDTRANS_WEBHOOK_SECRET=YOUR_SERVER_KEY
+EMAIL_USER=xxxx@gmail.com
+EMAIL_PASS=xxxx
 import { connectDB } from "@/lib/mongodb";
 import Order from "@/models/Order";
 import crypto from "crypto";
